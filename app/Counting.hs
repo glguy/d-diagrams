@@ -30,17 +30,22 @@ counts = foldr addBit (true : repeat false)
 inRange :: Boolean b => Int -> Int -> [b] -> b
 inRange lo hi = or . take (hi-lo) . drop lo . counts
 
+-- | Check that exactly @n@ bits are true.
 exactly :: Boolean b => Int -> [b] -> b
 exactly n = inRange n (n+1)
 
+-- | Check that fewer than @n@ bits are true.
 fewerThan :: Boolean b => Int -> [b] -> b
 fewerThan = inRange 0 
 
+-- | Check that at least @n@ bits are true.
 atLeast :: Boolean b => Int -> [b] -> b
 atLeast n = not . fewerThan n
 
+-- | Check that at most @n@ bits are true.
 atMost :: Boolean b => Int -> [b] -> b
 atMost n = fewerThan (n+1)
 
+-- | Check that more than @n@ bits are true.
 moreThan :: Boolean b => Int -> [b] -> b
 moreThan n = atLeast (n+1)

@@ -6,15 +6,9 @@ description:
   Solver for the Dungeons & Diagrams game found in Last Call BBS
   implemented by converting a puzzle to a SAT statement and calling
   out to an external SAT solver.
-
--- A URL where users can report bugs.
--- bug-reports:
-
--- The license under which the package is released.
 license:                ISC
 author:                 Eric Mertens
 maintainer:             emertens@gmail.com
--- A copyright notice.
 copyright:              2022 Eric Mertens
 category:               Game
 extra-source-files:     CHANGELOG.md
