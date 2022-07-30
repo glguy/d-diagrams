@@ -1,6 +1,6 @@
-cabal-version:      2.4
-name:               d-diagrams
-version:            0.1.0.0
+cabal-version:          2.4
+name:                   d-diagrams
+version:                0.1.0.0
 
 -- A short (one-line) description of the package.
 -- synopsis:
@@ -13,32 +13,32 @@ version:            0.1.0.0
 
 -- The license under which the package is released.
 -- license:
-author:             Eric Mertens
-maintainer:         emertens@gmail.com
-
+author:                 Eric Mertens
+maintainer:             emertens@gmail.com
 -- A copyright notice.
--- copyright:
+copyright:              2022 Eric Mertens
 -- category:
-extra-source-files: CHANGELOG.md
+extra-source-files:     CHANGELOG.md
 
 executable d-diagrams
-    main-is:          Main.hs
+    main-is:            Main.hs
+    hs-source-dirs:     app
+    default-language:   Haskell2010
+    ghc-options:        -Wall
     other-modules:
         Counting
+        Parser
         Puzzle
-        Rendering
-        Utils
-        Solution
         Regions
+        Rendering
+        Solution
+        Utils
     default-extensions:
-        ImportQualifiedPost
         BlockArguments
+        ImportQualifiedPost
         LambdaCase
-    hs-source-dirs:   app
-    default-language: Haskell2010
-    ghc-options: -Wall
     build-depends:
-        base,
-        ersatz,
-        containers,
         ansi-terminal,
+        base,
+        containers,
+        ersatz,

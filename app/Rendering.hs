@@ -24,7 +24,8 @@ renderPuzzle p = unlines
 
     char k = \case
       M       -> setSGRCode [SetColor Foreground Dull Red   ] ++ 'M' : setSGRCode [Reset]
-      C       -> setSGRCode [SetColor Background Dull Yellow] ++ 'C' : setSGRCode [Reset]
+      C       -> setSGRCode [SetColor Background Dull Yellow,
+                             SetColor Foreground Dull Black ] ++ 'C' : setSGRCode [Reset]
       O False -> setSGRCode [SetColor Background Dull Green ] ++ '·' : setSGRCode [Reset]
       O True  -> setSGRCode [SetColor Foreground Dull Blue  ] ++ c   : setSGRCode [Reset]
         where
