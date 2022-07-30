@@ -1,5 +1,17 @@
 {-# LANGUAGE ParallelListComp #-}
-module Counting where
+{- |
+Module:       Counting
+Description:  Functions for counting bits.
+-}
+module Counting (
+  counts,
+  inRange,
+  exactly,
+  fewerThan,
+  moreThan,
+  atMost,
+  atLeast,
+) where
 
 import Prelude hiding (not, or)
 import Ersatz (Boolean(choose, false, not, or, true))

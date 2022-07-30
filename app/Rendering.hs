@@ -1,33 +1,54 @@
-module Rendering (renderPuzzle) where
+{- |
+Module:       Rendering
+Description:  Functions for rendering solved puzzles.
+-}
+module Rendering (printSolution) where
 
 import Data.Map qualified as Map
 import Ersatz (false)
+import Grids (gridMap, cardinal)
 import Puzzle (Puzzle, Elt(O, M, C), clueRows, topClues, isPath, rows)
-import Regions (cardinal)
-import System.Console.ANSI (setSGRCode, SGR(..), ConsoleIntensity(..), Color(..), ConsoleLayer(..), ColorIntensity(..))
-import Utils (gridMap)
+import System.Console.ANSI
+import Data.Foldable (for_)
 
-renderPuzzle :: Puzzle Bool -> String
-renderPuzzle p = unlines
-  $ (setSGRCode [SetConsoleIntensity BoldIntensity] <>
-     " " <> concatMap show (topClues p) <>
-     setSGRCode [Reset])
-  : [ setSGRCode [SetConsoleIntensity BoldIntensity] <>
-      show n <>
-      setSGRCode [Reset] <>
-      concat [char (y,x) e | (x,e) <- zip [0..] row]
-    | (y,(n,row)) <- zip [0..] (clueRows p)]
+-- | Print a solution to the terminal using ANSI formatting.
+printSolution :: Puzzle Bool -> IO ()
+printSolution p =
+ do setSGR [SetConsoleIntensity BoldIntensity]
+    putStr (" " <> concatMap show (topClues p))
+    setSGR [Reset]
+    putStrLn ""
+
+    for_ (zip [0..] (clueRows p)) \(y,(n,row)) ->
+     do setSGR [SetConsoleIntensity BoldIntensity]
+        putStr (show n)
+        setSGR [Reset]
+        
+        for_ (zip [0..] row) \(x,e) ->
+          elt (y,x) e
+        putStrLn ""
   where
     m = gridMap (rows p)
 
     path k = maybe false isPath (Map.lookup k m)
 
-    char k = \case
-      M       -> setSGRCode [SetColor Foreground Dull Red   ] ++ 'M' : setSGRCode [Reset]
-      C       -> setSGRCode [SetColor Background Dull Yellow,
-                             SetColor Foreground Dull Black ] ++ 'C' : setSGRCode [Reset]
-      O False -> setSGRCode [SetColor Foreground Dull Green ] ++ '·' : setSGRCode [Reset]
-      O True  -> setSGRCode [SetColor Foreground Dull Blue  ] ++ c   : setSGRCode [Reset]
+    elt k = \case
+      M ->
+       do setSGR [SetColor Foreground Dull Red]
+          putChar 'M'
+          setSGR [Reset]
+      C ->
+       do setSGR [SetColor Background Dull Yellow, SetColor Foreground Dull Black]
+          putChar 'C'
+          setSGR [Reset]
+      O False ->
+       do setSGR [SetColor Foreground Dull Green]
+          putChar '·'
+          setSGR [Reset]
+      O True  ->
+       do setSGR [SetColor Foreground Dull Blue]
+          putChar c
+          setSGR [Reset]
         where
           c =
             case path <$> cardinal k of

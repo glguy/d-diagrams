@@ -1,24 +1,28 @@
 cabal-version:          2.4
 name:                   d-diagrams
 version:                0.1.0.0
-
--- A short (one-line) description of the package.
--- synopsis:
-
--- A longer description of the package.
--- description:
+synopsis:               Solver for Dungeon & Diagrams
+description:
+  Solver for the Dungeons & Diagrams game found in Last Call BBS
+  implemented by converting a puzzle to a SAT statement and calling
+  out to an external SAT solver.
 
 -- A URL where users can report bugs.
 -- bug-reports:
 
 -- The license under which the package is released.
--- license:
+license:                ISC
 author:                 Eric Mertens
 maintainer:             emertens@gmail.com
 -- A copyright notice.
 copyright:              2022 Eric Mertens
--- category:
+category:               Game
 extra-source-files:     CHANGELOG.md
+
+source-repository head
+    type:               git
+    branch:             main
+    location:           https://github.com/glguy/d-diagrams
 
 executable d-diagrams
     main-is:            Main.hs
@@ -27,18 +31,17 @@ executable d-diagrams
     ghc-options:        -Wall
     other-modules:
         Counting
+        Grids
         Parser
         Puzzle
-        Regions
         Rendering
         Solution
-        Utils
     default-extensions:
         BlockArguments
         ImportQualifiedPost
         LambdaCase
     build-depends:
         ansi-terminal,
-        base,
+        base ^>= 4.16,
         containers,
         ersatz,

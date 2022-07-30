@@ -1,49 +1,50 @@
 {-# LANGUAGE DeriveAnyClass, DeriveGeneric, TypeFamilies, DeriveTraversable #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{- |
+Module:       Puzzle
+Description:  Type and functions for specifying puzzles.
+-}
 module Puzzle (
   Puzzle(..),
   Elt(..),
   isPath,
   isChest,
-  puzzleMap,
   clueCols,
   rows,
   makePuzzle,
 ) where
 
 import Data.List (transpose)
-import Data.Map (Map)
 import Ersatz (Boolean, true, false, bool, Equatable, (===), Codec(..))
 import GHC.Generics (Generic)
-import Utils (gridMap)
 
 -----------------------------------------------------------------------
 -- Puzzle grid element representation
 -----------------------------------------------------------------------
 
+-- | A single element in the puzzle
 data Elt a
   = M -- ^ monster
   | C -- ^ chest
   | O a -- ^ true is open path, false is wall
   deriving (Read, Show, Traversable, Foldable, Functor, Generic, Equatable, Eq, Ord)
 
+-- | Predicate for paths (anything that's not a wall).
 isPath :: Boolean b => Elt b -> b
 isPath = \case
   O o -> o
   _   -> true
 
+-- | Predicate for chests.
 isChest :: Boolean b => Elt a -> b
 isChest = \case
   C -> true
   _ -> false
 
------------------------------------------------------------------------
--- Puzzle representation
------------------------------------------------------------------------
-
+-- | Representation of a whole puzzle.
 data Puzzle a = Puzzle {
-  topClues :: [Int],           -- ^ column clues
-  clueRows :: [(Int, [Elt a])] -- ^ row clues and rows
+  topClues :: [Int],           -- ^ column wall counts
+  clueRows :: [(Int, [Elt a])] -- ^ row wall counts and row elements
   }
   deriving (Read, Show, Traversable, Foldable, Functor, Generic, Equatable, Eq, Ord)
 
@@ -52,15 +53,15 @@ instance Codec a => Codec (Puzzle a) where
   decode = traverse . decode
   encode = fmap encode
 
+-- | Row view of puzzle elements
 rows :: Puzzle a -> [[Elt a]]
 rows = map snd . clueRows
 
+-- | Column view of puzzle elements
 cols :: Puzzle a -> [[Elt a]]
 cols = transpose . rows
 
-puzzleMap :: Puzzle a -> Map (Int,Int) (Elt a)
-puzzleMap = gridMap . rows
-
+-- | Combined row and column count pairs.
 clueCols :: Puzzle a -> [(Int, [Elt a])]
 clueCols p = zip (topClues p) (cols p)
 

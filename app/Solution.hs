@@ -1,5 +1,9 @@
 {-# LANGUAGE MonadComprehensions #-}
-module Solution (solutionExists) where
+{- |
+Module:       Solution
+Description:  Functions for puzzle solutions.
+-}
+module Solution (solutionExists, validPuzzle) where
 
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Data.Map qualified as Map
@@ -15,24 +19,23 @@ import Ersatz
 import Puzzle
     ( Puzzle(clueRows),
       Elt(C, O, M),
+      rows,
       isPath,
       isChest,
-      puzzleMap,
       clueCols )
-import Regions ( cardinal, region3, walls3, twoArc )
-import Counting ( exactly, atLeast )
+import Grids (cardinal, gridMap, region3, twoArc, walls3)
+import Counting (exactly, atLeast)
 
------------------------------------------------------------------------
--- Solution validation
------------------------------------------------------------------------
-
+-- | Predicate for solved puzzles.
 validPuzzle :: Boolean a => Puzzle a -> a
 validPuzzle p = validCounts p && validCells p
 
+-- | Predicate for puzzles with valid row and column count.
 validCounts :: Boolean a => Puzzle a -> a
 validCounts p =
   all (\(n,xs) -> exactly n (not . isPath <$> xs)) (clueRows p <> clueCols p)
 
+-- | Predicate for puzzles with valid local element constraints.
 validCells :: Boolean a => Puzzle a -> a
 validCells p = all (uncurry validCell) (Map.assocs m)
   where
@@ -41,7 +44,7 @@ validCells p = all (uncurry validCell) (Map.assocs m)
       M   -> exactly 1 (entrances cardinal k)
       C   -> inChestRoom k
 
-    m = puzzleMap p
+    m = gridMap (rows p)
     at k = Map.lookup k m
 
     inChestRoom = any (\x -> Map.findWithDefault false x cache) . region3
