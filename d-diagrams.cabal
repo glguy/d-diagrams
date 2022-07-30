@@ -1,7 +1,7 @@
 cabal-version:          2.4
 name:                   d-diagrams
 version:                0.1.0.0
-synopsis:               Solver for Dungeon & Diagrams
+synopsis:               Solver for Dungeons & Diagrams
 description:
   Solver for the Dungeons & Diagrams game found in Last Call BBS
   implemented by converting a puzzle to a SAT statement and calling
