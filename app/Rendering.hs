@@ -26,7 +26,7 @@ renderPuzzle p = unlines
       M       -> setSGRCode [SetColor Foreground Dull Red   ] ++ 'M' : setSGRCode [Reset]
       C       -> setSGRCode [SetColor Background Dull Yellow,
                              SetColor Foreground Dull Black ] ++ 'C' : setSGRCode [Reset]
-      O False -> setSGRCode [SetColor Background Dull Green ] ++ '·' : setSGRCode [Reset]
+      O False -> setSGRCode [SetColor Foreground Dull Green ] ++ '·' : setSGRCode [Reset]
       O True  -> setSGRCode [SetColor Foreground Dull Blue  ] ++ c   : setSGRCode [Reset]
         where
           c =
