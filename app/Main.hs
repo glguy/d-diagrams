@@ -4,16 +4,17 @@ Description:  Read a puzzle and print its solution.
 -}
 module Main (main) where
 
-import Ersatz (Result(Satisfied), solveWith, anyminisat)
+import Data.ByteString.Lazy qualified as B
+import Data.Foldable (for_)
+import Ersatz (Result(Satisfied), solveWith, anyminisat, dimacsSAT)
+import Parser (parse, parseSolutionArray)
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Puzzle (Puzzle)
 import Rendering (printSolution)
 import Solution (solutionExists)
-import Parser (parse, parseSolutionArray)
-import Data.Foldable (for_)
-import System.Environment
-import System.Exit
-import System.IO
+import System.Environment ( getArgs )
+import System.Exit ( exitFailure )
+import System.IO ( hPutStrLn, stderr )
 
 -- | Print out all the solutions to a puzzle.
 solveAll :: Puzzle a -> IO [Puzzle Bool]
@@ -32,6 +33,7 @@ main =
     case args of
       ["check"] -> checkMode
       ["solve"] -> solveMode
+      ["dimacs", outfile] -> dimacsMode outfile
       _         -> usage
 
 checkMode :: IO ()
@@ -74,6 +76,19 @@ solveMode =
        do putStrLn "Begin ambiguous solutions"
           for_ slns printSolution
           putStrLn "End ambiguous solutions"
+
+dimacsMode :: FilePath -> IO ()
+dimacsMode outfile =
+ do input <- getContents
+
+    p <-
+      case parse input of
+        Just p -> pure p
+        Nothing ->
+         do hPutStrLn stderr "Failed to parse input"
+            exitFailure
+
+    B.writeFile outfile (dimacsSAT (solutionExists [] p))
 
 usage :: IO ()
 usage =

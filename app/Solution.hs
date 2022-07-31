@@ -7,6 +7,7 @@ module Solution (solutionExists, validPuzzle) where
 
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Control.Monad (replicateM)
+import Data.Foldable (for_)
 import Data.Map qualified as Map
 import Data.Traversable (for)
 import Ersatz
@@ -56,7 +57,7 @@ validCells p = all (uncurry validCell) (Map.assocs m)
       where
         cache = Map.mapMaybeWithKey (\k _ -> isChestRoomCenter k) m
         isChestRoomCenter k =
-          [ all isPath room && exactly 1 (entrances walls3 k)        
+          [ all isPath room && exactly 1 (entrances walls3 k)
             | room <- traverse at (region3 k)
             , exactly 1 (isChest <$> room)
           ]
@@ -77,25 +78,30 @@ connected p =
     let n = length (concat (rows p)) - sum (topClues p)
 
     -- pick a number of bits large enough to allow every path to have a unique number
-    let lg_n = bitsNeeded n
+    let mkIndex = Bits <$> replicateM (bitsNeeded n) exists
 
     -- assign each location a number
     m <- for (gridMap (rows p)) \e ->
-     do i <- Bits <$> replicateM lg_n exists
+     do i <- mkIndex
         pure (e,i)
 
     -- at most one path can be assigned index 0
     assert (atMost 1 [isPath e && 0 === i | (e,i) <- Map.elems m])
-    
-    -- every path element is adjacent to a smaller path element or is the zero element
-    assert (and [isPath e1 ==>
-                 0 === i1 || or [isPath e2 && i2 <? i1 | c <- cardinal k, Just (e2,i2) <- [Map.lookup c m]]
-                | (k,(e1,i1)) <- Map.assocs m])
 
+    let neighborCheck k i =
+          0 === i ||
+          or [isPath e && j <? i | c <- cardinal k, Just (e,j) <- [Map.lookup c m]]
+
+    -- every path element is adjacent to a smaller path element or is the zero element
+    assert (and [isPath e ==> neighborCheck k i | (k,(e,i)) <- Map.assocs m])
+
+-- | Base-2 integer logarithm rounded up
 bitsNeeded :: Int -> Int
-bitsNeeded n
-  | n < 2 = 0
-  | otherwise = 1 + bitsNeeded ((n+1) `div` 2)
+bitsNeeded = go 0
+  where
+    go acc n
+      | n < 2     = acc
+      | otherwise = go (1+acc) ((n+1) `div` 2)
 
 -- | Generate a solution to the input puzzle.
 solutionExists ::
@@ -105,6 +111,7 @@ solutionExists ::
   m (Puzzle Bit)
 solutionExists old p =
  do b <- for p \_ -> exists
-    assert (validPuzzle b && all (\o -> encode o /== b) old)
+    assert (validPuzzle b)
+    for_ old \o -> assert (encode o /== b) 
     connected b
     pure b
