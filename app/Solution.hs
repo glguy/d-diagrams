@@ -107,4 +107,4 @@ solutionExists old p =
  do b <- for p \_ -> exists
     assert (validPuzzle b && all (\o -> encode o /== b) old)
     connected b
-    return b
+    pure b

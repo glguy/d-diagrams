@@ -2,10 +2,12 @@
 Module:       Parser
 Description:  Functions for parsing puzzles.
 -}
-module Parser (parse) where
+module Parser (parse, parseSolutionArray) where
 
 import Data.Char ( isDigit, digitToInt )
-import Puzzle (Puzzle(Puzzle), Elt(..))
+import Puzzle (Puzzle(Puzzle), Elt(..), makePuzzle)
+import Data.List.Split
+import Data.List (transpose)
 
 -- | Parse a simple ASCII puzzle representation.
 --
@@ -23,9 +25,10 @@ parse :: String -> Maybe (Puzzle ())
 parse input =
   case lines input of
     (' ':ns):rs ->
-      Puzzle
+      (() <$) <$>
+      (Puzzle
         <$> traverse parseDigit ns
-        <*> traverse parseRow rs
+        <*> traverse parseRow rs)
     _ -> Nothing
 
 parseDigit :: Char -> Maybe Int
@@ -33,13 +36,21 @@ parseDigit c
   | isDigit c = Just $! digitToInt c
   | otherwise = Nothing
 
-parseRow :: String -> Maybe (Int, [Elt ()])
+parseRow :: String -> Maybe (Int, [Elt Bool])
 parseRow (n:xs) = (,) <$> parseDigit n <*> traverse parseCell xs
 parseRow [] = Nothing
 
-parseCell :: Char -> Maybe (Elt ())
-parseCell = \case
-  '.' -> Just (O ())
-  'C' -> Just C
-  'M' -> Just M
-  _   -> Nothing
+parseSolutionArray :: String -> Maybe [Puzzle Bool]
+parseSolutionArray str =
+  sequence
+  [ makePuzzle <$> traverse (traverse parseCell) puz
+    | puz_row <- wordsBy null (map words (lines str))
+    , puz <- transpose puz_row
+  ]
+
+parseCell :: Char -> Maybe (Elt Bool)
+parseCell 'O' = Just (O False)
+parseCell '.' = Just (O True)
+parseCell 'C' = Just C
+parseCell 'M' = Just M
+parseCell _   = Nothing
