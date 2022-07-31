@@ -39,3 +39,4 @@ executable d-diagrams
         base ^>= 4.16,
         containers,
         ersatz,
+        split,
