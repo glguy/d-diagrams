@@ -7,30 +7,22 @@ module Solution (solutionExists, validPuzzle) where
 
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Control.Monad (replicateM)
+import Counting (exactly, atLeast, atMost)
 import Data.Foldable (for_)
 import Data.Map qualified as Map
 import Data.Traversable (for)
 import Ersatz
-    ( assert,
-      exists,
-      Bit,
+    ( Bit,
+      Bits(Bits),
       Boolean((&&), (==>), (||), false, not, any, all, and, or),
-      Codec(encode),
-      Equatable((===), (/==)),
       MonadSAT,
-      (<?),
-      Bits(Bits)
-      )
+      assert, encode, exists,
+      (===), (/==), (<?))
+import Grids (cardinal, gridMap, region3, twoArc, walls3)
 import Puzzle
     ( Puzzle(clueRows),
       Elt(C, O, M),
-      rows,
-      isPath,
-      isChest,
-      clueCols,
-      topClues )
-import Grids (cardinal, gridMap, region3, twoArc, walls3)
-import Counting (exactly, atLeast, atMost)
+      clueCols, isChest, isPath, rows, topClues)
 
 -- | Predicate for solved puzzles.
 validPuzzle :: Boolean a => Puzzle a -> a
@@ -39,7 +31,9 @@ validPuzzle p = validCounts p && validCells p
 -- | Predicate for puzzles with valid row and column count.
 validCounts :: Boolean a => Puzzle a -> a
 validCounts p =
-  all (\(n,xs) -> exactly n (not . isPath <$> xs)) (clueRows p <> clueCols p)
+  all
+    (\(n,xs) -> exactly n (not . isPath <$> xs))
+    (clueRows p <> clueCols p)
 
 -- | Predicate for puzzles with valid local element constraints.
 validCells :: Boolean a => Puzzle a -> a
