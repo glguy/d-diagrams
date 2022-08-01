@@ -37,6 +37,7 @@ executable d-diagrams
     build-depends:
         ansi-terminal,
         base ^>= 4.16,
+        bytestring,
         containers,
         ersatz,
         split,
