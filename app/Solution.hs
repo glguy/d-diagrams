@@ -3,7 +3,7 @@
 Module:       Solution
 Description:  Functions for puzzle solutions.
 -}
-module Solution (solutionExists, validPuzzle) where
+module Solution (solutionExists, validateSolution) where
 
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Control.Monad (replicateM)
@@ -17,7 +17,8 @@ import Ersatz
       Boolean((&&), (==>), (||), false, not, any, all, and, or),
       MonadSAT,
       assert, encode, exists,
-      (===), (/==), (<?))
+      (===), (/==), (<?), anyminisat, solveWith,
+      Result(..))
 import Grids (cardinal, gridMap, region3, twoArc, walls3)
 import Puzzle
     ( Puzzle(clueRows),
@@ -109,3 +110,15 @@ solutionExists old p =
     for_ old \o -> assert (encode o /== b)
     connected b
     pure b
+
+validateSolution ::
+  Puzzle Bool ->
+  IO Bool
+validateSolution p
+  | not (validPuzzle p) = pure False
+  | otherwise =
+   do res <- solveWith anyminisat
+       do connected (encode p)
+      case res of
+        (Satisfied, Just ()) -> pure True
+        _ -> pure False

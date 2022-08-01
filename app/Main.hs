@@ -13,7 +13,7 @@ import Parser (parse, parseSolutionArray)
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Puzzle (Puzzle)
 import Rendering (printSolutions)
-import Solution (solutionExists)
+import Solution (solutionExists, validateSolution)
 import System.Environment ( getArgs )
 import System.Exit ( exitFailure )
 import System.IO ( hPutStrLn, stderr )
@@ -31,29 +31,22 @@ solveAll = go []
 -- | Print out all the solutions to a puzzle.
 check1 :: Puzzle Bool -> IO ()
 check1 p =
- do res <- solveWith anyminisat (solutionExists [] p)
-    case res of
-      (Satisfied, Just q)
-        | p == q ->
-         do res1 <- solveWith anyminisat (solutionExists [q] p)
-            case res1 of
-              (Satisfied, Just r) -> 
-               do printSolutions [p,r]
-                  putStrLn "Not Unique!"
-                  exitFailure
-              _ -> pure ()
-        | otherwise ->
-         do printSolutions [p,q]
-            putStrLn "Not Unique!"
-            exitFailure
-      (Unsatisfied, _) ->
-       do printSolutions [p]
-          putStrLn "Impossible!"
-          exitFailure
-      _ ->
-       do printSolutions [p]
-          putStrLn "Broken?"
-          exitFailure
+ do valid <- validateSolution p
+    if valid then
+     do res <- solveWith anyminisat (solutionExists [p] p)
+        case res of
+          (Satisfied, Just q) ->
+           do printSolutions [p,q]
+              putStrLn "Not Unique!"
+              exitFailure
+          (Unsatisfied, _) -> pure ()
+          _ ->
+           do putStrLn "Broken!"
+              exitFailure
+    else
+     do printSolutions [p]
+        putStrLn "Bad input puzzle"
+        exitFailure
 
 -- | Main entry point
 main :: IO ()
