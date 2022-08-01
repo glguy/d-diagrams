@@ -106,6 +106,6 @@ solutionExists ::
 solutionExists old p =
  do b <- for p \_ -> exists
     assert (validPuzzle b)
-    for_ old \o -> assert (encode o /== b) 
+    for_ old \o -> assert (encode o /== b)
     connected b
     pure b

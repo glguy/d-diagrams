@@ -2,30 +2,38 @@
 Module:       Rendering
 Description:  Functions for rendering solved puzzles.
 -}
-module Rendering (printSolution) where
+module Rendering (printSolutions) where
 
 import Data.Foldable (for_)
+import Data.List (transpose)
 import Data.Map qualified as Map
 import Grids (gridMap, cardinal)
 import Puzzle (Puzzle, Elt(O, M, C), clueRows, topClues, isPath, rows)
 import System.Console.ANSI (setSGR, Color(..), ConsoleIntensity(..), SGR(..), ColorIntensity(..), ConsoleLayer(..))
 
 -- | Print a solution to the terminal using ANSI formatting.
-printSolution :: Puzzle Bool -> IO ()
-printSolution p =
- do setSGR [SetConsoleIntensity BoldIntensity]
-    putStr (" " <> concatMap show (topClues p))
-    setSGR [Reset]
+printSolutions :: [Puzzle Bool] -> IO ()
+printSolutions ps =
+ do for_ ps \p ->
+     do setSGR [SetConsoleIntensity BoldIntensity]
+        putStr (" " <> concatMap show (topClues p))
+        setSGR [Reset]
     putStrLn ""
 
-    for_ (zip [0..] (clueRows p)) \(y,(n,row)) ->
-     do setSGR [SetConsoleIntensity BoldIntensity]
-        putStr (show n)
-        setSGR [Reset]
-
-        for_ (zip [0..] row) \(x,e) ->
-          elt (y,x) e
+    for_ (transpose (prepareRows <$> ps)) \zs ->
+     do sequence_ zs
         putStrLn ""
+
+prepareRows :: Puzzle Bool -> [IO ()]
+prepareRows p =
+  [
+   do setSGR [SetConsoleIntensity BoldIntensity]
+      putStr (show n)
+      setSGR [Reset]
+      for_ (zip [0..] row) \(x,e) ->
+        elt (y,x) e
+    | (y,(n,row)) <- zip [0..] (clueRows p)
+  ]
   where
     m = gridMap (rows p)
 

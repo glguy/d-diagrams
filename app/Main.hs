@@ -1,3 +1,4 @@
+{-# Language ScopedTypeVariables #-}
 {- |
 Module:       Main
 Description:  Read a puzzle and print its solution.
@@ -5,12 +6,13 @@ Description:  Read a puzzle and print its solution.
 module Main (main) where
 
 import Data.ByteString.Lazy qualified as B
-import Data.Foldable (for_)
-import Ersatz (Result(Satisfied), solveWith, anyminisat, dimacsSAT)
+import Data.Foldable (for_, traverse_)
+import Data.List.Split ( chunksOf )
+import Ersatz (Result(..), solveWith, anyminisat, dimacsSAT)
 import Parser (parse, parseSolutionArray)
 import Prelude hiding (all, (&&), (||), not, any, and, or)
 import Puzzle (Puzzle)
-import Rendering (printSolution)
+import Rendering (printSolutions)
 import Solution (solutionExists)
 import System.Environment ( getArgs )
 import System.Exit ( exitFailure )
@@ -25,6 +27,33 @@ solveAll = go []
         case res of
           (Satisfied, Just q) -> go (q:old) p
           _ -> pure old
+
+-- | Print out all the solutions to a puzzle.
+check1 :: Puzzle Bool -> IO ()
+check1 p =
+ do res <- solveWith anyminisat (solutionExists [] p)
+    case res of
+      (Satisfied, Just q)
+        | p == q ->
+         do res1 <- solveWith anyminisat (solutionExists [q] p)
+            case res1 of
+              (Satisfied, Just r) -> 
+               do printSolutions [p,r]
+                  putStrLn "Not Unique!"
+                  exitFailure
+              _ -> pure ()
+        | otherwise ->
+         do printSolutions [p,q]
+            putStrLn "Not Unique!"
+            exitFailure
+      (Unsatisfied, _) ->
+       do printSolutions [p]
+          putStrLn "Impossible!"
+          exitFailure
+      _ ->
+       do printSolutions [p]
+          putStrLn "Broken?"
+          exitFailure
 
 -- | Main entry point
 main :: IO ()
@@ -47,15 +76,9 @@ checkMode =
             exitFailure
         Just xs -> pure xs
     
-    for_ ps \p ->
-     do slns <- solveAll p
-        case slns of
-          [x] | x == p -> printSolution x
-          [] -> putStrLn "No solutions"
-          _ ->
-           do putStrLn "Begin ambiguous solutions"
-              for_ slns printSolution
-              putStrLn "End ambiguous solutions"
+    for_ (chunksOf 8 ps) \chunk ->
+     do traverse_ check1 chunk
+        printSolutions chunk
 
 solveMode :: IO ()
 solveMode =
@@ -70,11 +93,11 @@ solveMode =
 
     slns <- solveAll p
     case slns of
-      [y] -> printSolution y
+      [y] -> printSolutions [y]
       [] -> putStrLn "No solutions"
       _ ->
        do putStrLn "Begin ambiguous solutions"
-          for_ slns printSolution
+          for_ (chunksOf 8 slns) printSolutions
           putStrLn "End ambiguous solutions"
 
 dimacsMode :: FilePath -> IO ()
