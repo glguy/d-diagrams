@@ -5,6 +5,7 @@ Description:  Read a puzzle and print its solution.
 -}
 module Main (main) where
 
+import Control.Monad (unless)
 import Data.ByteString.Lazy qualified as B
 import Data.Foldable (for_, traverse_)
 import Data.List.Split ( chunksOf )
@@ -56,6 +57,7 @@ main =
       ["check"] -> checkMode
       ["solve"] -> solveMode
       ["dimacs", outfile] -> dimacsMode outfile
+      ["dimacs-unique", outfile] -> dimacsUniqueMode outfile
       _         -> usage
 
 checkMode :: IO ()
@@ -106,7 +108,26 @@ dimacsMode outfile =
 
     B.writeFile outfile (dimacsSAT (solutionExists [] p))
 
+
+dimacsUniqueMode :: FilePath -> IO ()
+dimacsUniqueMode outfile =
+ do input <- getContents
+
+    p <-
+      case parseSolutionArray input of
+        Just [p] -> pure p
+        _ ->
+         do hPutStrLn stderr "Failed to parse input"
+            exitFailure
+
+    valid <- validateSolution p
+    unless valid
+     do putStrLn "Invalid puzzle"
+        exitFailure
+
+    B.writeFile outfile (dimacsSAT (solutionExists [p] p))
+
 usage :: IO ()
 usage =
- do hPutStrLn stderr "Usage: d-diagrams <check|solve>"
+ do hPutStrLn stderr "Usage: d-diagrams <check|solve|dimacs|dimacs-unique>"
     exitFailure
